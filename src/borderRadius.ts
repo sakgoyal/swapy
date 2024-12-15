@@ -15,7 +15,7 @@ export type BorderRadius = {
 }
 
 export function isBorderRadius(
-  borderRadius: any
+  borderRadius: any,
 ): borderRadius is BorderRadius {
   return (
     typeof borderRadius === 'object' &&
@@ -45,7 +45,7 @@ export function parseBorderRadius(borderRadius: string): BorderRadius {
     return {
       x: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 },
       y: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 },
-      unit: 'px'
+      unit: 'px',
     }
   }
 
@@ -67,32 +67,32 @@ export function parseBorderRadius(borderRadius: string): BorderRadius {
     topLeft: v1 ?? 0,
     topRight: v2 ?? v1 ?? 0,
     bottomRight: v3 ?? v1 ?? 0,
-    bottomLeft: v4 ?? v2 ?? v1 ?? 0
+    bottomLeft: v4 ?? v2 ?? v1 ?? 0,
   }
   return {
     x: { ...result },
     y: { ...result },
-    unit
+    unit,
   }
 }
 
 export function calculateBorderRadiusInverse(
   { x, y, unit }: BorderRadius,
   scaleX: number,
-  scaleY: number
+  scaleY: number,
 ): BorderRadius {
   if (unit === 'px') {
     const RadiusXInverse = {
       topLeft: x.topLeft / scaleX,
       topRight: x.topRight / scaleX,
       bottomLeft: x.bottomLeft / scaleX,
-      bottomRight: x.bottomRight / scaleX
+      bottomRight: x.bottomRight / scaleX,
     }
     const RadiusYInverse = {
       topLeft: y.topLeft / scaleY,
       topRight: y.topRight / scaleY,
       bottomLeft: y.bottomLeft / scaleY,
-      bottomRight: y.bottomRight / scaleY
+      bottomRight: y.bottomRight / scaleY,
     }
     return { x: RadiusXInverse, y: RadiusYInverse, unit: 'px' }
   } else if (unit === '%') {

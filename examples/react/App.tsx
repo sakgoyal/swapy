@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'https://esm.sh/react@19.0.0'
+import type { Swapy } from '../../src/index.ts'
+import { createSwapy } from '../../src/index.ts'
 import './style.css'
-import { Swapy } from '../../src'
-import { createSwapy } from '../../src'
 
 function App() {
   const swapyRef = useRef<Swapy | null>(null)
@@ -30,13 +30,13 @@ function App() {
       })
 
       swapyRef.current.onSwapStart((event) => {
-        console.log('start', event);
+        console.log('start', event)
       })
       swapyRef.current.onSwap((event) => {
-        console.log('swap', event);
+        console.log('swap', event)
       })
       swapyRef.current.onSwapEnd((event) => {
-        console.log('end', event);
+        console.log('end', event)
       })
     }
     return () => {
@@ -44,24 +44,24 @@ function App() {
     }
   }, [])
   return (
-    <div className="container" ref={containerRef}>
-      <div className="slot top" data-swapy-slot="a">
-        <div className="item item-a" data-swapy-item="a">
+    <div className='container' ref={containerRef}>
+      <div className='slot top' data-swapy-slot='a'>
+        <div className='item item-a' data-swapy-item='a'>
           <div>A</div>
         </div>
       </div>
-      <div className="middle">
-        <div className="slot middle-left" data-swapy-slot="b">
-          <div className="item item-b" data-swapy-item="b">
-            <div className="handle" data-swapy-handle></div>
+      <div className='middle'>
+        <div className='slot middle-left' data-swapy-slot='b'>
+          <div className='item item-b' data-swapy-item='b'>
+            <div className='handle' data-swapy-handle></div>
             <div>B</div>
           </div>
         </div>
-        <div className="slot middle-right" data-swapy-slot="c">
+        <div className='slot middle-right' data-swapy-slot='c'>
         </div>
       </div>
-      <div className="slot bottom" data-swapy-slot="d">
-        <div className="item item-d" data-swapy-item="d">
+      <div className='slot bottom' data-swapy-slot='d'>
+        <div className='item item-d' data-swapy-item='d'>
           <div>D</div>
         </div>
       </div>

@@ -1,18 +1,18 @@
 import {
-  BorderRadius,
+  type BorderRadius,
   borderRadiusToString,
   calculateBorderRadiusInverse,
-  parseBorderRadius
-} from './borderRadius'
+  parseBorderRadius,
+} from './borderRadius.ts'
 import {
   createRectFromBoundingRect,
   getCorrectedBoundingRect,
   getLayoutRect,
   getScrollOffset,
-  Rect
-} from './rect'
-import { vec2, Vec2 } from './vector'
-import { Transform, View } from './view'
+  type Rect,
+} from './rect.ts'
+import { type Vec2, vec2 } from './vector.ts'
+import type { Transform, View } from './view.ts'
 
 type TransitionValue = {
   width: number
@@ -42,7 +42,7 @@ type ParentChildrenTreeData = Array<{
 
 type ChildElement = HTMLElement & { originalBorderRadius: string }
 
-export interface Flip {
+export type Flip = {
   readInitial(): void
   readFinalAndReverse(): void
   transitionValues(): FlipTransitionValues
@@ -76,7 +76,7 @@ export function flipView(view: View): Flip {
     parentChildrenTreeData = tree.map(({ parent, children }) => ({
       parent: {
         el: parent,
-        initialRect: createRectFromBoundingRect(parent.getBoundingClientRect())
+        initialRect: createRectFromBoundingRect(parent.getBoundingClientRect()),
       },
       children: children
         .filter((child) => child instanceof HTMLElement)
@@ -89,10 +89,10 @@ export function flipView(view: View): Flip {
             el: child,
             borderRadius: parseBorderRadius(childEl.originalBorderRadius),
             initialRect: createRectFromBoundingRect(
-              child.getBoundingClientRect()
-            )
+              child.getBoundingClientRect(),
+            ),
           }
-        })
+        }),
     }))
 
     state = 'readInitial'
@@ -101,21 +101,21 @@ export function flipView(view: View): Flip {
   function readFinalAndReverse() {
     if (state !== 'readInitial') {
       throw new Error(
-        'FlipView: Cannot read final values before reading initial values'
+        'FlipView: Cannot read final values before reading initial values',
       )
     }
     parentFinalRect = view.layoutRect()
     parentDw = parentInitialRect.width / parentFinalRect.width
     parentDh = parentInitialRect.height / parentFinalRect.height
-    parentDx =
-      parentInitialRect.x - parentFinalRect.x - current.dragX + scrollOffset.x
-    parentDy =
-      parentInitialRect.y - parentFinalRect.y - current.dragY + scrollOffset.y
+    parentDx = parentInitialRect.x - parentFinalRect.x - current.dragX +
+      scrollOffset.x
+    parentDy = parentInitialRect.y - parentFinalRect.y - current.dragY +
+      scrollOffset.y
 
     parentInverseBorderRadius = calculateBorderRadiusInverse(
       view.borderRadius(),
       parentDw,
-      parentDh
+      parentDh,
     )
 
     const tree = getParentChildTree(view.el())
@@ -127,7 +127,7 @@ export function flipView(view: View): Flip {
           parent: {
             ...parent,
             el: parentEl,
-            finalRect: getLayoutRect(parentEl)
+            finalRect: getLayoutRect(parentEl),
           },
           children: children.map((child, j) => {
             const childEl = tree[i].children[j]
@@ -136,29 +136,29 @@ export function flipView(view: View): Flip {
               finalRect = {
                 ...finalRect,
                 width: child.initialRect.width,
-                height: child.initialRect.height
+                height: child.initialRect.height,
               }
             }
             return {
               ...child,
               el: childEl,
-              finalRect
+              finalRect,
             }
-          })
+          }),
         }
-      }
+      },
     )
 
     const targetTransform: Omit<Transform, 'dragX' | 'dragY'> = {
       translateX: parentDx,
       translateY: parentDy,
       scaleX: parentDw,
-      scaleY: parentDh
+      scaleY: parentDh,
     }
 
     view.el().style.transformOrigin = '0 0'
     view.el().style.borderRadius = borderRadiusToString(
-      parentInverseBorderRadius
+      parentInverseBorderRadius,
     )
     view.setTransform(targetTransform)
 
@@ -172,8 +172,8 @@ export function flipView(view: View): Flip {
             finalRect!,
             borderRadius,
             parent.initialRect,
-            parent.finalRect!
-          )
+            parent.finalRect!,
+          ),
       )
       childrenData.push(...childData)
     })
@@ -191,22 +191,22 @@ export function flipView(view: View): Flip {
         height: parentInitialRect.height,
         translate: vec2(parentDx, parentDy),
         scale: vec2(parentDw, parentDh),
-        borderRadius: parentInverseBorderRadius
+        borderRadius: parentInverseBorderRadius,
       },
       to: {
         width: parentFinalRect.width,
         height: parentFinalRect.height,
         translate: vec2(0, 0),
         scale: vec2(1, 1),
-        borderRadius: view.borderRadius()
-      }
+        borderRadius: view.borderRadius(),
+      },
     }
   }
 
   function childrenTransitionData(): Array<FlipChildTransitionData> {
     if (state !== 'readFinal') {
       throw new Error(
-        'FlipView: Cannot get children transition values before reading'
+        'FlipView: Cannot get children transition values before reading',
       )
     }
     return childrenData
@@ -216,7 +216,7 @@ export function flipView(view: View): Flip {
     readInitial,
     readFinalAndReverse,
     transitionValues,
-    childrenTransitionData
+    childrenTransitionData,
   }
 }
 
@@ -226,7 +226,7 @@ function calculateChildData(
   childFinalRect: Rect,
   childBorderRadius: BorderRadius,
   parentInitialRect: Rect,
-  parentFinalRect: Rect
+  parentFinalRect: Rect,
 ): FlipChildTransitionData {
   childEl.style.transformOrigin = '0 0'
   const parentDw = parentInitialRect.width / parentFinalRect.width
@@ -236,7 +236,7 @@ function calculateChildData(
   const fromBorderRadius = calculateBorderRadiusInverse(
     childBorderRadius,
     dw,
-    dh
+    dh,
   )
   const initialX = childInitialRect.x - parentInitialRect.x
   const finalX = childFinalRect.x - parentFinalRect.x
@@ -244,9 +244,10 @@ function calculateChildData(
   const finalY = childFinalRect.y - parentFinalRect.y
   const fromTranslateX = (initialX - finalX * parentDw) / parentDw
   const fromTranslateY = (initialY - finalY * parentDh) / parentDh
-  childEl.style.transform = `translate(${fromTranslateX}px, ${fromTranslateY}px) scale(${
-    dw / parentDw
-  }, ${dh / parentDh})`
+  childEl.style.transform =
+    `translate(${fromTranslateX}px, ${fromTranslateY}px) scale(${
+      dw / parentDw
+    }, ${dh / parentDh})`
   childEl.style.borderRadius = borderRadiusToString(fromBorderRadius)
 
   return {
@@ -255,23 +256,23 @@ function calculateChildData(
     fromScale: vec2(dw, dh),
     fromBorderRadius,
     toBorderRadius: childBorderRadius,
-    parentScale: { x: parentDw, y: parentDh }
+    parentScale: { x: parentDw, y: parentDh },
   }
 }
 
 function getParentChildTree(
-  element: HTMLElement
+  element: HTMLElement,
 ): { parent: HTMLElement; children: HTMLElement[] }[] {
   const result: { parent: HTMLElement; children: HTMLElement[] }[] = []
 
   function traverse(parent: HTMLElement) {
     const children = Array.from(parent.children).filter(
-      (el) => el instanceof HTMLElement
+      (el) => el instanceof HTMLElement,
     ) as HTMLElement[]
     if (children.length > 0) {
       result.push({
         parent: parent,
-        children: children
+        children: children,
       })
       children.forEach((child) => traverse(child))
     }

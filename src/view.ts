@@ -1,7 +1,7 @@
-import { BorderRadius, parseBorderRadius } from './borderRadius'
-import { createRectFromBoundingRect, getLayoutRect, Rect } from './rect'
+import { type BorderRadius, parseBorderRadius } from './borderRadius.ts'
+import { createRectFromBoundingRect, getLayoutRect, type Rect } from './rect.ts'
 
-export interface View {
+export type View = {
   el(): HTMLElement
   setTransform(transform: Partial<Transform>): void
   clearTransform(): void
@@ -11,13 +11,13 @@ export interface View {
   boundingRect(): Rect
   usePlugin<P extends ViewPlugin, C>(
     pluginFactory: (v: View, config: C) => P,
-    config: C
+    config: C,
   ): P
   updateElement(el: HTMLElement): void
   destroy(): void
 }
 
-export interface ViewPlugin {
+export type ViewPlugin = {
   onElementUpdate(): void
   destroy(): void
 }
@@ -40,10 +40,10 @@ export function createView(el: HTMLElement): View {
     translateX: 0,
     translateY: 0,
     scaleX: 1,
-    scaleY: 1
+    scaleY: 1,
   }
   const borderRadius = parseBorderRadius(
-    window.getComputedStyle(element).borderRadius
+    globalThis.window.getComputedStyle(element).borderRadius,
   )
   const thisView = {
     el: () => element,
@@ -56,7 +56,7 @@ export function createView(el: HTMLElement): View {
       createRectFromBoundingRect(element.getBoundingClientRect()),
     usePlugin,
     destroy,
-    updateElement
+    updateElement,
   }
 
   function setTransform(newTransform: Partial<Transform>) {
@@ -71,7 +71,7 @@ export function createView(el: HTMLElement): View {
       translateX: 0,
       translateY: 0,
       scaleX: 1,
-      scaleY: 1
+      scaleY: 1,
     }
     renderTransform()
   }
@@ -97,7 +97,7 @@ export function createView(el: HTMLElement): View {
 
   function usePlugin<P extends ViewPlugin, C>(
     pluginFactory: (v: View, config: C) => P,
-    config: C
+    config: C,
   ) {
     const plugin = pluginFactory(thisView, config)
     plugins.push(plugin)

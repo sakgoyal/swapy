@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'https://esm.sh/react@19.0.0'
+import type { SlotItemMapArray, Swapy } from '../../src/index.ts'
+import { createSwapy } from '../../src/index.ts'
 import './style.css'
-import { SlotItemMapArray, Swapy, utils } from '../../src'
-import { createSwapy } from '../../src'
+import * as utils from '../../src/utils.ts'
 
 type Item = {
   id: string
@@ -18,13 +24,28 @@ let id = 4
 
 function App() {
   const [items, setItems] = useState<Item[]>(initialItems)
-  const [slotItemMap, setSlotItemMap] = useState<SlotItemMapArray>(utils.initSlotItemMap(items, 'id'))
-  const slottedItems = useMemo(() => utils.toSlottedItems(items, 'id', slotItemMap), [items, slotItemMap])
+  const [slotItemMap, setSlotItemMap] = useState<SlotItemMapArray>(
+    utils.initSlotItemMap(items, 'id'),
+  )
+  const slottedItems = useMemo(
+    () => utils.toSlottedItems(items, 'id', slotItemMap),
+    [items, slotItemMap],
+  )
   const swapyRef = useRef<Swapy | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => utils.dynamicSwapy(swapyRef.current, items, 'id', slotItemMap, setSlotItemMap), [items])
+  useEffect(
+    () =>
+      utils.dynamicSwapy(
+        swapyRef.current,
+        items,
+        'id',
+        slotItemMap,
+        setSlotItemMap,
+      ),
+    [items],
+  )
 
   useEffect(() => {
     swapyRef.current = createSwapy(containerRef.current!, {
@@ -46,26 +67,37 @@ function App() {
     }
   }, [])
   return (
-    <div className="container" ref={containerRef}>
-      <div className="items">
+    <div className='container' ref={containerRef}>
+      <div className='items'>
         {slottedItems.map(({ slotId, itemId, item }) => (
-          <div className="slot" key={slotId} data-swapy-slot={slotId}>
+          <div className='slot' key={slotId} data-swapy-slot={slotId}>
             {item &&
-              <div className="item" data-swapy-item={itemId} key={itemId}>
-                <span>{item.title}</span>
-                <span className="delete" data-swapy-no-drag onClick={() => {
-                  setItems(items.filter(i => i.id !== item.id))
-                }}></span>
-              </div>
-            }
+              (
+                <div className='item' data-swapy-item={itemId} key={itemId}>
+                  <span>{item.title}</span>
+                  <span
+                    className='delete'
+                    data-swapy-no-drag
+                    onClick={() => {
+                      setItems(items.filter((i) => i.id !== item.id))
+                    }}
+                  >
+                  </span>
+                </div>
+              )}
           </div>
         ))}
       </div>
-      <div className="item item--add" onClick={() => {
-        const newItem: Item = { id: `${id}`, title: `${id}` }
-        setItems([...items, newItem])
-        id++
-      }}>+</div>
+      <div
+        className='item item--add'
+        onClick={() => {
+          const newItem: Item = { id: `${id}`, title: `${id}` }
+          setItems([...items, newItem])
+          id++
+        }}
+      >
+        +
+      </div>
     </div>
   )
 }

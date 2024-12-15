@@ -1,29 +1,28 @@
-import { animate, AnimateConfig, CancelFunction } from './animators'
-import { borderRadiusToString, isBorderRadiusNone } from './borderRadius'
-import {
+import type { AnimateConfig, CancelFunction } from './animators.ts'
+import { animate } from './animators.ts'
+import { borderRadiusToString, isBorderRadiusNone } from './borderRadius.ts'
+import { makeDraggable } from './draggable.ts'
+import type {
   DragEvent,
   DraggableConfig,
   DraggablePlugin,
-  makeDraggable,
   OnDragListener,
   OnDropListener,
   OnHoldListener,
-  OnReleaseListener
-} from './draggable'
-import { easeOutBack, easeOutCubic } from './easings'
-import { Flip, flipView } from './flip'
-import { clamp, lerp, lerpBorderRadius, remap } from './math'
+  OnReleaseListener,
+} from './draggable.ts'
+import { easeOutBack, easeOutCubic } from './easings.ts'
+import { type Flip, flipView } from './flip.ts'
+import { clamp, lerp, lerpBorderRadius, remap } from './math.ts'
 import {
   createRectFromBoundingRect,
   pointIntersectsWithRect,
-  Rect
-} from './rect'
-import { Vec2, vec2 } from './vector'
-import { createView, View } from './view'
+  type Rect,
+} from './rect.ts'
+import { type Vec2, vec2 } from './vector.ts'
+import { createView, type View } from './view.ts'
 
-export * as utils from './utils'
-
-export interface Swapy {
+export type Swapy = {
   enable(enabled: boolean): void
   onSwapStart(handler: SwapStartEventHandler): void
   onSwap(handler: SwapEventHandler): void
@@ -65,7 +64,7 @@ export type BeforeSwapEvent = {
 }
 export type BeforeSwapHandler = (event: BeforeSwapEvent) => boolean
 
-interface Slot {
+type Slot = {
   id(): string
   item(): Item | undefined
   view(): View
@@ -77,7 +76,7 @@ interface Slot {
   destroy(): void
 }
 
-interface Item {
+type Item = {
   id(): string
   slot(): Slot
   view(): View
@@ -102,7 +101,7 @@ type ItemCancelAnimation = Record<
 
 type ScrollHandler = (e: Event) => void
 
-interface Store {
+type Store = {
   items(): Array<Item>
   slots(): Array<Slot>
   setItems(items: Array<Item>): void
@@ -156,7 +155,7 @@ const DEFAULT_CONFIG: Config = {
   dragOnHold: false,
   autoScrollOnDrag: false,
   dragAxis: 'both',
-  manualSwap: false
+  manualSwap: false,
 }
 
 function getAnimateConfig(animationType: AnimationType): AnimateConfig {
@@ -172,7 +171,7 @@ function getAnimateConfig(animationType: AnimationType): AnimateConfig {
 
 export function createSwapy(
   container: HTMLElement,
-  config?: Partial<Config>
+  config?: Partial<Config>,
 ): Swapy {
   const userConfig = { ...DEFAULT_CONFIG, ...config }
   const store = createStore({ slots: [], items: [], config: userConfig })
@@ -184,16 +183,16 @@ export function createSwapy(
   function init() {
     if (!isContainerValid(container)) {
       throw new Error(
-        'Cannot create a Swapy instance because your HTML structure is invalid. Fix all above errors and then try!'
+        'Cannot create a Swapy instance because your HTML structure is invalid. Fix all above errors and then try!',
       )
     }
 
     slots = Array.from(container.querySelectorAll('[data-swapy-slot]')).map(
-      (slotEl) => createSlot(slotEl as HTMLElement, store)
+      (slotEl) => createSlot(slotEl as HTMLElement, store),
     )
     store.setSlots(slots)
     items = Array.from(container.querySelectorAll('[data-swapy-item]')).map(
-      (itemEl) => createItem(itemEl as HTMLElement, store)
+      (itemEl) => createItem(itemEl as HTMLElement, store),
     )
     store.setItems(items)
 
@@ -238,7 +237,7 @@ export function createSwapy(
 
   function swapWithPointer(
     item: Item,
-    { pointerX, pointerY }: Pick<DragEvent, 'pointerX' | 'pointerY'>
+    { pointerX, pointerY }: Pick<DragEvent, 'pointerX' | 'pointerY'>,
   ) {
     slots.forEach((slot) => {
       const rect = slot.rect()
@@ -255,7 +254,7 @@ export function createSwapy(
             fromSlot: fromSlot.id(),
             toSlot: slot.id(),
             draggingItem: item.id(),
-            swapWithItem: slotItem?.id() || ''
+            swapWithItem: slotItem?.id() || '',
           })
         ) {
           return
@@ -278,7 +277,7 @@ export function createSwapy(
           let scrollYBeforeSwap = 0
           let scrollXBeforeSwap = 0
           const scrollContainer = getClosestScrollableContainer(
-            item.view().el()
+            item.view().el(),
           )
           if (scrollContainer instanceof Window) {
             scrollYBeforeSwap = scrollContainer.scrollY
@@ -297,13 +296,13 @@ export function createSwapy(
             fromSlot: fromSlot.id(),
             toSlot: slot.id(),
             draggingItem: item.id(),
-            swappedWithItem: slotItem?.id() || ''
+            swappedWithItem: slotItem?.id() || '',
           })
           requestAnimationFrame(() => {
             const itemEls = container.querySelectorAll('[data-swapy-item]')
             store.items().forEach((item) => {
               const itemEl = Array.from(itemEls).find(
-                (el) => (el as HTMLElement).dataset.swapyItem === item.id()
+                (el) => (el as HTMLElement).dataset.swapyItem === item.id(),
               ) as HTMLElement
               item.view().updateElement(itemEl)
             })
@@ -321,14 +320,14 @@ export function createSwapy(
             // Restore scroll position before swap
             scrollContainer.scrollTo({
               left: scrollXBeforeSwap,
-              top: scrollYBeforeSwap
+              top: scrollYBeforeSwap,
             })
           })
         } else {
           let scrollYBeforeSwap = 0
           let scrollXBeforeSwap = 0
           const scrollContainer = getClosestScrollableContainer(
-            item.view().el()
+            item.view().el(),
           )
           if (scrollContainer instanceof Window) {
             scrollYBeforeSwap = scrollContainer.scrollY
@@ -343,7 +342,7 @@ export function createSwapy(
           }
           scrollContainer.scrollTo({
             left: scrollXBeforeSwap,
-            top: scrollYBeforeSwap
+            top: scrollYBeforeSwap,
           })
           const oldSlotItemMap = store.slotItemMap()
           store.syncSlotItemMap()
@@ -354,7 +353,7 @@ export function createSwapy(
             fromSlot: fromSlot.id(),
             toSlot: slot.id(),
             draggingItem: item.id(),
-            swappedWithItem: slotItem?.id() || ''
+            swappedWithItem: slotItem?.id() || '',
           })
         }
       }
@@ -420,14 +419,14 @@ export function createSwapy(
     onSwapEnd,
     onBeforeSwap,
     update,
-    destroy
+    destroy,
   }
 }
 
 function createStore({
   slots,
   items,
-  config
+  config,
 }: {
   slots: Array<Slot>
   items: Array<Item>
@@ -443,20 +442,20 @@ function createStore({
       onSwapStart: () => {},
       onSwap: () => {},
       onSwapEnd: () => {},
-      onBeforeSwap: () => true
+      onBeforeSwap: () => true,
     },
     scrollOffsetWhileDragging: { x: 0, y: 0 } as Vec2,
-    scrollHandler: null as ScrollHandler | null
+    scrollHandler: null as ScrollHandler | null,
   }
   let store = {
-    ...initialStore
+    ...initialStore,
   }
 
   const scrollHandler = (e: Event) => {
     store.scrollHandler?.(e)
   }
 
-  window.addEventListener('scroll', scrollHandler)
+  globalThis.window.addEventListener('scroll', scrollHandler)
 
   function slotById(id: string): Slot | undefined {
     return store.slots.find((slot) => slot.id() === id)
@@ -497,17 +496,17 @@ function createStore({
     currentSlotItemMap.asMap.set(toSlotId, sourceItemId)
     currentSlotItemMap.asMap.set(fromSlotId, targetItemId)
     const toSlotIndex = currentSlotItemMap.asArray.findIndex(
-      (slotItem) => slotItem.slot === toSlotId
+      (slotItem) => slotItem.slot === toSlotId,
     )
     const fromSlotIndex = currentSlotItemMap.asArray.findIndex(
-      (slotItem) => slotItem.slot === fromSlotId
+      (slotItem) => slotItem.slot === fromSlotId,
     )
     currentSlotItemMap.asArray[toSlotIndex].item = sourceItemId
     currentSlotItemMap.asArray[fromSlotIndex].item = targetItemId
   }
 
   function destroy() {
-    window.removeEventListener('scroll', scrollHandler)
+    globalThis.window.removeEventListener('scroll', scrollHandler)
     store = { ...initialStore }
   }
 
@@ -535,7 +534,7 @@ function createStore({
       store.scrollHandler = handler
     },
     swapItems,
-    destroy
+    destroy,
   }
 }
 
@@ -584,7 +583,7 @@ function createSlot(slotEl: HTMLElement, store: Store): Slot {
     highlight,
     unhighlightAllSlots,
     isHighlighted: () => view.el().hasAttribute('data-swapy-highlighted'),
-    destroy
+    destroy,
   }
 }
 
@@ -609,7 +608,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
     DraggablePlugin,
     DraggableConfig
   >(makeDraggable, {
-    startDelay: store.config().dragOnHold ? 400 : 0
+    startDelay: store.config().dragOnHold ? 400 : 0,
   })
 
   // ------------------------------------------------------------
@@ -680,7 +679,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
     store.eventHandlers().onSwapStart({
       draggingItem: id(),
       fromSlot: slotId(),
-      slotItemMap
+      slotItemMap,
     })
     slotItemMapSessionStart = slotItemMap
     view.el().style.position = 'relative'
@@ -691,19 +690,19 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
     if (store.config().autoScrollOnDrag) {
       autoScroller = createAutoScroller(
         scrollContainer,
-        store.config().dragAxis
+        store.config().dragAxis,
       )
       autoScroller.updatePointer({
         x: dragEvent.pointerX,
-        y: dragEvent.pointerY
+        y: dragEvent.pointerY,
       })
     }
 
     // ------------------------------------------------------------
     // Handling scrolling while dragging
     // ------------------------------------------------------------
-    lastScroll.x = window.scrollX
-    lastScroll.y = window.scrollY
+    lastScroll.x = globalThis.window.scrollX
+    lastScroll.y = globalThis.window.scrollY
     scrollOffset.x = 0
     scrollOffset.y = 0
 
@@ -713,19 +712,17 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
       containerLastScroll.y = scrollContainer.scrollTop
       // Handler for scrolling the closest scroll container
       scrollContainerHandler = () => {
-        containerScrollOffset.x =
-          (scrollContainer as HTMLElement).scrollLeft - containerLastScroll.x
-        containerScrollOffset.y =
-          (scrollContainer as HTMLElement).scrollTop - containerLastScroll.y
+        containerScrollOffset.x = (scrollContainer as HTMLElement).scrollLeft -
+          containerLastScroll.x
+        containerScrollOffset.y = (scrollContainer as HTMLElement).scrollTop -
+          containerLastScroll.y
         view.setTransform({
-          dragX:
-            (currentDragEvent?.width || 0) +
+          dragX: (currentDragEvent?.width || 0) +
             scrollOffset.x +
             containerScrollOffset.x,
-          dragY:
-            (currentDragEvent?.height || 0) +
+          dragY: (currentDragEvent?.height || 0) +
             scrollOffset.y +
-            containerScrollOffset.y
+            containerScrollOffset.y,
         })
       }
       scrollContainer.addEventListener('scroll', scrollContainerHandler)
@@ -733,15 +730,15 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
 
     // When scrolling the window
     store.onScroll(() => {
-      scrollOffset.x = window.scrollX - lastScroll.x
-      scrollOffset.y = window.scrollY - lastScroll.y
+      scrollOffset.x = globalThis.window.scrollX - lastScroll.x
+      scrollOffset.y = globalThis.window.scrollY - lastScroll.y
       const containerOffsetX = containerScrollOffset.x || 0
       const containerOffsetY = containerScrollOffset.y || 0
       view.setTransform({
-        dragX:
-          (currentDragEvent?.width || 0) + scrollOffset.x + containerOffsetX,
-        dragY:
-          (currentDragEvent?.height || 0) + scrollOffset.y + containerOffsetY
+        dragX: (currentDragEvent?.width || 0) + scrollOffset.x +
+          containerOffsetX,
+        dragY: (currentDragEvent?.height || 0) + scrollOffset.y +
+          containerOffsetY,
       })
     })
   }
@@ -764,7 +761,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
     if (autoScroller) {
       autoScroller.updatePointer({
         x: dragEvent.pointerX,
-        y: dragEvent.pointerY
+        y: dragEvent.pointerY,
       })
     }
     currentDragEvent = dragEvent
@@ -775,16 +772,16 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
       const dragY = dragEvent.height + scrollOffset.y + containerScrollOffset.y
       if (store.config().dragAxis === 'y') {
         view.setTransform({
-          dragY
+          dragY,
         })
       } else if (store.config().dragAxis === 'x') {
         view.setTransform({
-          dragX
+          dragX,
         })
       } else {
         view.setTransform({
           dragX,
-          dragY
+          dragY,
         })
       }
       dragListener?.(dragEvent)
@@ -816,10 +813,10 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
       slotItemMap: store.slotItemMap(),
       hasChanged: slotItemMapSessionStart?.asMap
         ? !areMapsEqual(
-            slotItemMapSessionStart?.asMap,
-            store.slotItemMap().asMap
-          )
-        : false
+          slotItemMapSessionStart?.asMap,
+          store.slotItemMap().asMap,
+        )
+        : false,
     })
     slotItemMapSessionStart = null
     store.onScroll(null)
@@ -852,7 +849,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
               dragX: 0,
               dragY: 0,
               translateX: translate.x,
-              translateY: translate.y
+              translateY: translate.y,
             })
           }
           if (done) {
@@ -866,7 +863,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
             continuousDrag = true
           }
         },
-        getAnimateConfig(store.config().animation)
+        getAnimateConfig(store.config().animation),
       )
     }
   })
@@ -974,7 +971,7 @@ function createItem(itemEl: HTMLElement, store: Store): Item {
     dragEvent: () => currentDragEvent,
     store: () => store,
     continuousDrag: () => continuousDrag,
-    setContinuousDrag: (value: boolean) => (continuousDrag = value)
+    setContinuousDrag: (value: boolean) => (continuousDrag = value),
   }
 }
 
@@ -1027,12 +1024,12 @@ function animateFlippedItem(item: Item, flip: Flip) {
     {
       translate: transitionValues.from.translate,
       scale: transitionValues.from.scale,
-      borderRadius: transitionValues.from.borderRadius
+      borderRadius: transitionValues.from.borderRadius,
     },
     {
       translate: transitionValues.to.translate,
       scale: transitionValues.to.scale,
-      borderRadius: transitionValues.to.borderRadius
+      borderRadius: transitionValues.to.borderRadius,
     },
     ({ translate, scale, borderRadius }, done, progress) => {
       if (item.isDragging()) {
@@ -1059,17 +1056,17 @@ function animateFlippedItem(item: Item, flip: Flip) {
               current.translateX +
                 (transitionValues.from.width - transitionValues.to.width) *
                   relativeX,
-              animateConfig.easing(progress - lastProgress)
+              animateConfig.easing(progress - lastProgress),
             ),
             translateY: lerp(
               current.translateY,
               current.translateY +
                 (transitionValues.from.height - transitionValues.to.height) *
                   relativeY,
-              animateConfig.easing(progress - lastProgress)
+              animateConfig.easing(progress - lastProgress),
             ),
             scaleX: scale.x,
-            scaleY: scale.y
+            scaleY: scale.y,
           })
         } else {
           item.view().setTransform({ scaleX: scale.x, scaleY: scale.y })
@@ -1083,7 +1080,7 @@ function animateFlippedItem(item: Item, flip: Flip) {
         if (draggedAfterDrop) {
           item.view().setTransform({
             scaleX: scale.x,
-            scaleY: scale.y
+            scaleY: scale.y,
           })
         } else {
           item.view().setTransform({
@@ -1092,7 +1089,7 @@ function animateFlippedItem(item: Item, flip: Flip) {
             translateX: translate.x,
             translateY: translate.y,
             scaleX: scale.x,
-            scaleY: scale.y
+            scaleY: scale.y,
           })
         }
       }
@@ -1104,17 +1101,17 @@ function animateFlippedItem(item: Item, flip: Flip) {
           fromScale,
           fromBorderRadius,
           toBorderRadius,
-          parentScale
+          parentScale,
         }) => {
           const parentScaleX = lerp(
             parentScale.x,
             1,
-            animateConfig.easing(progress)
+            animateConfig.easing(progress),
           )
           const parentScaleY = lerp(
             parentScale.y,
             1,
-            animateConfig.easing(progress)
+            animateConfig.easing(progress),
           )
           el.style.transform = `translate(${
             fromTranslate.x +
@@ -1124,29 +1121,35 @@ function animateFlippedItem(item: Item, flip: Flip) {
             fromTranslate.y +
             (0 - fromTranslate.y / parentScaleY) *
               animateConfig.easing(progress)
-          }px) scale(${lerp(
-            fromScale.x / parentScaleX,
-            1 / parentScaleX,
-            animateConfig.easing(progress)
-          )}, ${lerp(
-            fromScale.y / parentScaleY,
-            1 / parentScaleY,
-            animateConfig.easing(progress)
-          )})`
+          }px) scale(${
+            lerp(
+              fromScale.x / parentScaleX,
+              1 / parentScaleX,
+              animateConfig.easing(progress),
+            )
+          }, ${
+            lerp(
+              fromScale.y / parentScaleY,
+              1 / parentScaleY,
+              animateConfig.easing(progress),
+            )
+          })`
 
           if (!isBorderRadiusNone(fromBorderRadius)) {
             el.style.borderRadius = borderRadiusToString(
               lerpBorderRadius(
                 fromBorderRadius,
                 toBorderRadius,
-                animateConfig.easing(progress)
-              )
+                animateConfig.easing(progress),
+              ),
             )
           }
-        }
+        },
       )
       if (!isBorderRadiusNone(borderRadius)) {
-        item.view().el().style.borderRadius = borderRadiusToString(borderRadius)
+        item.view().el().style.borderRadius = borderRadiusToString(
+          borderRadius,
+        )
       }
       if (done) {
         if (!item.isDragging()) {
@@ -1162,7 +1165,7 @@ function animateFlippedItem(item: Item, flip: Flip) {
         })
       }
     },
-    animateConfig
+    animateConfig,
   )
 }
 
@@ -1204,27 +1207,27 @@ function isContainerValid(container: Element) {
       logError(
         'slot',
         `"${slotId}"`,
-        'does not contain an element with an item id using data-swapy-item'
+        'does not contain an element with an item id using data-swapy-item',
       )
       isValid = false
     }
   })
 
   const slotIds = Array.from(slotEls).map(
-    (slotEl) => (slotEl as HTMLElement).dataset.swapySlot
+    (slotEl) => (slotEl as HTMLElement).dataset.swapySlot,
   )
 
   const itemEls = containerEl.querySelectorAll('[data-swapy-item]')
 
   const itemIds = Array.from(itemEls).map(
-    (itemEl) => (itemEl as HTMLElement).dataset.swapyItem
+    (itemEl) => (itemEl as HTMLElement).dataset.swapyItem,
   )
 
   if (hasDuplicates(slotIds)) {
     const duplicates = findDuplicates(slotIds)
     logError(
       'your container has duplicate slot ids',
-      `(${duplicates.join(', ')})`
+      `(${duplicates.join(', ')})`,
     )
     isValid = false
   }
@@ -1233,7 +1236,7 @@ function isContainerValid(container: Element) {
     const duplicates = findDuplicates(itemIds)
     logError(
       'your container has duplicate item ids',
-      `(${duplicates.join(', ')})`
+      `(${duplicates.join(', ')})`,
     )
     isValid = false
   }
@@ -1262,7 +1265,7 @@ function findDuplicates<T>(array: T[]): T[] {
 
 function areMapsEqual(
   map1: Map<string, string>,
-  map2: Map<string, string>
+  map2: Map<string, string>,
 ): boolean {
   if (map1.size !== map2.size) return false
   for (const [key, value] of map1) {
@@ -1272,12 +1275,12 @@ function areMapsEqual(
 }
 
 export function getClosestScrollableContainer(
-  element: HTMLElement
+  element: HTMLElement,
 ): HTMLElement | Window {
   let current: HTMLElement | null = element
 
   while (current) {
-    const computedStyle = window.getComputedStyle(current)
+    const computedStyle = globalThis.window.getComputedStyle(current)
     const overflowY = computedStyle.overflowY
     const overflowX = computedStyle.overflowX
 
@@ -1296,14 +1299,14 @@ export function getClosestScrollableContainer(
   return window
 }
 
-interface AutoScroller {
+type AutoScroller = {
   updatePointer(pointer: Vec2): void
   destroy(): void
 }
 
 function createAutoScroller(
   container: HTMLElement | Window,
-  dragAxis: DragAxis
+  dragAxis: DragAxis,
 ): AutoScroller {
   const MAX_DISTANCE = 100
   const MAX_SPEED = 5
@@ -1325,11 +1328,13 @@ function createAutoScroller(
     rect = {
       x: 0,
       y: 0,
-      width: window.innerWidth,
-      height: window.innerHeight
+      width: globalThis.window.innerWidth,
+      height: globalThis.window.innerHeight,
     }
-    maxScrollY = document.documentElement.scrollHeight - window.innerHeight
-    maxScrollX = document.documentElement.scrollWidth - window.innerWidth
+    maxScrollY = document.documentElement.scrollHeight -
+      globalThis.window.innerHeight
+    maxScrollX = document.documentElement.scrollWidth -
+      globalThis.window.innerWidth
   }
 
   function updateCurrentScroll() {
@@ -1337,8 +1342,8 @@ function createAutoScroller(
       currentScrollY = container.scrollTop
       currentScrollX = container.scrollLeft
     } else {
-      currentScrollY = window.scrollY
-      currentScrollX = window.scrollX
+      currentScrollY = globalThis.window.scrollY
+      currentScrollX = globalThis.window.scrollX
     }
   }
 
@@ -1410,8 +1415,9 @@ function createAutoScroller(
       scrollTopBy = currentScrollY + scrollTopBy >= maxScrollY ? 0 : scrollTopBy
     }
     if (dragAxis !== 'y') {
-      scrollLeftBy =
-        currentScrollX + scrollLeftBy >= maxScrollX ? 0 : scrollLeftBy
+      scrollLeftBy = currentScrollX + scrollLeftBy >= maxScrollX
+        ? 0
+        : scrollLeftBy
     }
 
     container.scrollBy({ top: scrollTopBy, left: scrollLeftBy })
@@ -1426,6 +1432,6 @@ function createAutoScroller(
 
   return {
     updatePointer,
-    destroy
+    destroy,
   }
 }

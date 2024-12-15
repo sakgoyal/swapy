@@ -1,7 +1,7 @@
 export type Vec2 = { x: number; y: number }
 
-export function isVec2(v: any): v is Vec2 {
-  return typeof v === 'object' && 'x' in v && 'y' in v
+export function isVec2(v: unknown): v is Vec2 {
+  return typeof v === 'object' && 'x' in v! && 'y' in v
 }
 
 export function vec2(x: number, y: number): Vec2 {

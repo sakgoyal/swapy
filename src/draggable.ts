@@ -1,6 +1,6 @@
-import { View, ViewPlugin } from './view'
+import type { View, ViewPlugin } from './view.ts'
 
-interface Draggable {
+type Draggable = {
   onDrag(handler: OnDragListener): void
   onDrop(handler: OnDropListener): void
   onHold(handler: OnHoldListener): void
@@ -33,12 +33,12 @@ export type DraggableConfig = {
 }
 
 const DEFAULT_CONFIG: DraggableConfig = {
-  startDelay: 0
+  startDelay: 0,
 }
 
 export function makeDraggable(
   view: View,
-  userConfig?: Partial<DraggableConfig>
+  userConfig?: Partial<DraggableConfig>,
 ): DraggablePlugin {
   const config: DraggableConfig = { ...DEFAULT_CONFIG, ...userConfig }
 
@@ -59,7 +59,7 @@ export function makeDraggable(
   let relativeX = 0
   let relativeY = 0
   let draggingEl: HTMLElement | null = null
-  let timer: NodeJS.Timeout | null
+  let timer: number | null
 
   el.addEventListener('pointerdown', onPointerDown)
   document.body.addEventListener('pointerup', onPointerUp)
@@ -127,7 +127,7 @@ export function makeDraggable(
       height,
       relativeX,
       relativeY,
-      el: draggingEl!
+      el: draggingEl!,
     })
     draggingEl = null
   }
@@ -156,7 +156,7 @@ export function makeDraggable(
       pointerY: e.clientY,
       relativeX,
       relativeY,
-      el: draggingEl!
+      el: draggingEl!,
     })
   }
 
@@ -205,6 +205,6 @@ export function makeDraggable(
     onRelease,
     onElementUpdate,
     destroy,
-    readjust
+    readjust,
   }
 }

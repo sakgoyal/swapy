@@ -1,4 +1,4 @@
-import { Vec2 } from './vector'
+import type { Vec2 } from './vector.ts'
 
 export type Position = { x: number; y: number }
 export type Size = { width: number; height: number }
@@ -10,7 +10,7 @@ export function createRectFromBoundingRect(rect: DOMRect): Rect {
     x: rect.x,
     y: rect.y,
     width: rect.width,
-    height: rect.height
+    height: rect.height,
   }
 }
 
@@ -48,7 +48,7 @@ export function getCorrectedBoundingRect(element: HTMLElement): Rect {
     y: boundingRect.top - offsetY,
     x: boundingRect.left - offsetX,
     width: boundingRect.width,
-    height: boundingRect.height
+    height: boundingRect.height,
   }
 }
 
@@ -67,7 +67,7 @@ export function getLayoutRect(el: HTMLElement): Rect {
     x: left,
     y: top,
     width: el.offsetWidth,
-    height: el.offsetHeight
+    height: el.offsetHeight,
   }
 }
 
@@ -90,15 +90,15 @@ export function getScrollOffset(el: HTMLElement): Vec2 {
     const isScrollable = (node: HTMLElement) => {
       const style = getComputedStyle(node)
       return /(auto|scroll)/.test(
-        style.overflow + style.overflowY + style.overflowX
+        style.overflow + style.overflowY + style.overflowX,
       )
     }
 
     // If scrollable, add its scroll offsets
     if (current === document.body) {
       // Use window scroll for the <body> element
-      x += window.scrollX
-      y += window.scrollY
+      x += globalThis.window.scrollX
+      y += globalThis.window.scrollY
       break
     }
 

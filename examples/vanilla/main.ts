@@ -1,9 +1,9 @@
-import { createSwapy } from '../../src'
+import { createSwapy } from '../../src/index.ts'
 
-const container = document.querySelector('.container') as HTMLElement
+const container = document.querySelector<HTMLElement>('.container')!
 
 const swapy = createSwapy(container, {
-  animation: 'dynamic'
+  animation: 'dynamic',
   // swapMode: 'drop',
   // autoScrollOnDrag: true,
   // enabled: true,

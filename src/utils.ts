@@ -1,4 +1,4 @@
-import { SlotItemMapArray, Swapy } from '.'
+import type { SlotItemMapArray, Swapy } from './index.ts'
 
 export type SlottedItems<Item> = Array<{
   slotId: string
@@ -9,25 +9,24 @@ export type SlottedItems<Item> = Array<{
 export function toSlottedItems<Item>(
   items: Array<Item>,
   idField: keyof Item,
-  slotItemMap: SlotItemMapArray
+  slotItemMap: SlotItemMapArray,
 ): SlottedItems<Item> {
   return slotItemMap.map((slotItem) => ({
     slotId: slotItem.slot,
     itemId: slotItem.item,
-    item:
-      slotItem.item === ''
-        ? null
-        : items.find((item) => slotItem.item === item[idField])!
+    item: slotItem.item === ''
+      ? null
+      : items.find((item) => slotItem.item === item[idField])!,
   }))
 }
 
 export function initSlotItemMap<Item>(
   items: Array<Item>,
-  idField: keyof Item
+  idField: keyof Item,
 ): SlotItemMapArray {
   return items.map((item) => ({
     item: item[idField] as string,
-    slot: item[idField] as string
+    slot: item[idField] as string,
   }))
 }
 
@@ -37,16 +36,17 @@ export function dynamicSwapy<Item>(
   idField: keyof Item,
   slotItemMap: SlotItemMapArray,
   setSlotItemMap: (slotItemMap: SlotItemMapArray) => void,
-  removeItemOnly = false
+  removeItemOnly = false,
 ) {
   // Get the newly added items and convert them to slotItem objects
   const newItems: SlotItemMapArray = items
     .filter(
-      (item) => !slotItemMap.some((slotItem) => slotItem.item === item[idField])
+      (item) =>
+        !slotItemMap.some((slotItem) => slotItem.item === item[idField]),
     )
     .map((item) => ({
       slot: item[idField] as string,
-      item: item[idField] as string
+      item: item[idField] as string,
     }))
 
   let withoutRemovedItems: SlotItemMapArray
@@ -55,7 +55,7 @@ export function dynamicSwapy<Item>(
   if (!removeItemOnly) {
     withoutRemovedItems = slotItemMap.filter(
       (slotItem) =>
-        items.some((item) => item[idField] === slotItem.item) || !slotItem.item
+        items.some((item) => item[idField] === slotItem.item) || !slotItem.item,
     )
   } else {
     withoutRemovedItems = slotItemMap.map((slotItem) => {
@@ -68,7 +68,7 @@ export function dynamicSwapy<Item>(
 
   const updatedSlotItemsMap: SlotItemMapArray = [
     ...withoutRemovedItems,
-    ...newItems
+    ...newItems,
   ]
 
   setSlotItemMap(updatedSlotItemsMap)

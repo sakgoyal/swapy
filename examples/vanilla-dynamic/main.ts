@@ -1,9 +1,9 @@
-import { createSwapy } from '../../src'
+import { createSwapy } from '../../src/index.ts'
 
-const container = document.querySelector('.container') as HTMLElement
+const container = document.querySelector<HTMLElement>('.container')!
 
 const swapy = createSwapy(container, {
-  animation: 'spring'
+  animation: 'spring',
   // swapMode: 'drop',
   // autoScrollOnDrag: true,
   // enabled: true,
@@ -54,7 +54,7 @@ addButton.addEventListener('click', () => {
 document.body.addEventListener('click', (e) => {
   const target = e.target as HTMLElement
   if (target.classList.contains('delete')) {
-    const slot = target.closest('.slot') as HTMLElement
+    const slot = target.closest<HTMLElement>('.slot')!
     slot.remove()
   }
 })
